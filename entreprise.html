@@ -13,7 +13,7 @@
     body { font-family: Arial; padding: 20px; background: #f9f9f9; }
     .hidden { display: none; }
     input { margin: 5px; padding: 5px; }
-    button { margin: 5px; padding: 8px; }
+    button { margin: 5px; padding: 8px; cursor: pointer; }
     table { margin-top: 20px; width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     .box { background: white; padding: 15px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -48,7 +48,6 @@
             <th>Nom</th>
             <th>Email</th>
             <th>Identifiant</th>
-            <th>Copier</th>
             <th>Supprimer</th>
           </tr>
         </thead>
@@ -133,7 +132,6 @@
           <td>${c.prenom} ${c.nom}</td>
           <td>${c.email}</td>
           <td>${c.identifiant}</td>
-          <td><button onclick="navigator.clipboard.writeText('${c.identifiant}')">📋</button></td>
           <td><button onclick="supprimerChauffeur(${index})">🗑️</button></td>
         `;
         table.appendChild(tr);
