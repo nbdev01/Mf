@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Espace Entreprise</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>Espace entreprise – Gestion des chauffeurs</h1>
+
+  <h2>Ajouter un chauffeur</h2>
+  <input type="text" id="prenom" placeholder="Prénom">
+  <input type="text" id="nom" placeholder="Nom">
+  <input type="email" id="email" placeholder="Adresse email">
+  <button onclick="ajouterChauffeur()">Ajouter le chauffeur</button>
+
+  <h2>Chauffeurs enregistrés</h2>
+  <ul id="listeChauffeurs"></ul>
+
+  <h2>Frais du chauffeur</h2>
+  <div id="frais-affiche"></div>
+  <button id="btn-pdf" class="hidden" onclick="genererPDF()">Générer PDF</button>
+
+  <script>
+    function chargerChauffeurs() {
+      const chauffeurs = JSON.parse(localStorage.getItem('chauffeurs') || '[]');
+      const liste = document.getElementById('listeChauffeurs');
+      liste.innerHTML = '';
+      chauffeurs.forEach(chauffeur => {
+        const li = document.createElement('li');
+        li.textContent = `${chauffeur.prenom} ${chauffeur.nom} (${chauffeur.identifiant})`;
+
+        const boutonHist = document.createElement('button');
+        boutonHist.textContent = 'Voir historique';
+        boutonHist.onclick = () => voirHistorique(chauffeur.identifiant);
+
+        const boutonSuppr = document.createElement('button');
+        boutonSuppr.textContent = 'Supprimer';
+        boutonSuppr.onclick = () => supprimerChauffeur(chauffeur.identifiant);
+
+        li.appendChild(boutonHist);
+        li.appendChild(boutonSuppr);
+        liste.appendChild(li);
+      });
+    }
+
+    function ajouterChauffeur() {
+      const prenom = document.getElementById('prenom').value.trim().toLowerCase();
+      const nom = document.getElementById('nom').value.trim().toLowerCase();
+      const email = document.getElementById('email').value.trim();
+      if (!prenom || !nom || !email) {
+        alert("Merci de remplir tous les champs.");
+        return;
+      }
+      const identifiant = `${prenom}.${nom.charAt(0)}.transvern`;
+      let chauffeurs = JSON.parse(localStorage.getItem('chauffeurs') || '[]');
+      if (chauffeurs.find(c => c.identifiant === identifiant)) {
+        alert("Ce chauffeur existe déjà.");
+        return;
+      }
+      chauffeurs.push({ prenom, nom, email, identifiant });
+      localStorage.setItem('chauffeurs', JSON.stringify(chauffeurs));
+      alert(`Chauffeur ajouté.\nIdentifiant : ${identifiant}`);
+      chargerChauffeurs();
+      document.getElementById('prenom').value = '';
+      document.getElementById('nom').value = '';
+      document.getElementById('email').value = '';
+    }
+
+    function supprimerChauffeur(identifiant) {
+      let chauffeurs = JSON.parse(localStorage.getItem('chauffeurs') || '[]');
+      chauffeurs = chauffeurs.filter(c => c.identifiant !== identifiant);
+      localStorage.setItem('chauffeurs', JSON.stringify(chauffeurs));
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith(`frais-${identifiant}-`)) {
+          localStorage.removeItem(k);
+        }
+      });
+      chargerChauffeurs();
+      document.getElementById('frais-affiche').innerHTML = '';
+      document.getElementById('btn-pdf').classList.add('hidden');
+    }
+
+    function voirHistorique(identifiant) {
+      const zone = document.getElementById('frais-affiche');
+      zone.innerHTML = `<h3>Historique pour ${identifiant}</h3>`;
+      const keys = Object.keys(localStorage).filter(k => k.startsWith(`frais-${identifiant}-`));
+      if (keys.length === 0) {
+        zone.innerHTML += `<p>Aucune fiche enregistrée</p>`;
+        return;
+      }
+      const list = document.createElement('ul');
+      keys.forEach(k => {
+        const data = JSON.parse(localStorage.getItem(k));
+        const li = document.createElement('li');
+        li.textContent = `Semaine ${data.semaine} – Date : ${data.date}`;
+        li.onclick = () => afficherFrais(data);
+        list.appendChild(li);
+      });
+      zone.appendChild(list);
+      document.getElementById('btn-pdf').classList.add('hidden');
+    }
+
+    function afficherFrais(data) {
+      let html = `<h3>Frais ${data.chauffeur} – Semaine ${data.semaine} – ${data.date}</h3>`;
+      html += '<table><tr><th>Jour</th><th>Petit-déj</th><th>Déjeuner</th><th>Dîner</th><th>Nuitée</th></tr>';
+      const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      jours.forEach(jour => {
+        html += `<tr><td>${jour}</td>`;
+        html += `<td>${data.frais[jour]['Petit-déj']}</td>`;
+        html += `<td>${data.frais[jour]['Déjeuner']}</td>`;
+        html += `<td>${data.frais[jour]['Dîner']}</td>`;
+        html += `<td>${data.frais[jour]['Nuitée']}</td></tr>`;
+      });
+      html += '</table>';
+      document.getElementById('frais-affiche').innerHTML = html;
+      document.getElementById('btn-pdf').classList.remove('hidden');
+      window.dataFraisPourPDF = html;
+    }
+
+    function genererPDF() {
+      const contenu = window.dataFraisPourPDF || document.getElementById('frais-affiche').innerHTML;
+      const fenetre = window.open('', '', 'height=600,width=800');
+      fenetre.document.write('<html><head><title>Fiche de frais</title></head><body>');
+      fenetre.document.write(contenu);
+      fenetre.document.write('</body></html>');
+      fenetre.document.close();
+      fenetre.print();
+    }
+
+    chargerChauffeurs();
+  </script>
+
+</body>
+</html>
