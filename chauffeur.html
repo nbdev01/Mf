@@ -11,6 +11,7 @@
     .symbol-btn { font-size: 20px; cursor: pointer; padding: 5px 10px; }
     .active { background-color: #007bff; color: white; border-radius: 5px; }
     h2 { margin-bottom: 10px; }
+    #zone-frais { margin-top: 20px; }
   </style>
 </head>
 <body>
@@ -81,8 +82,8 @@
       }
 
       document.getElementById("zone-frais").style.display = "block";
-
       genererMenuJours();
+
       const today = new Date();
       const jourString = today.toISOString().split("T")[0];
       document.getElementById("selectJour").value = jourString;
