@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <title>Espace Entreprise</title>
 
-  <!-- ✅ SDK EmailJS classique, compatible GitHub Pages -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-  <script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function () {
+  <!-- ✅ EmailJS v3 NON-module, compatible GitHub Pages -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script>
+    window.onload = function () {
       emailjs.init("pWkZyANEs1HISx4PQ");
-    });
+    };
   </script>
 
   <style>
@@ -102,8 +102,8 @@
       localStorage.setItem("chauffeurs-" + entreprise, JSON.stringify(chauffeurs));
 
       envoyerEmail(chauffeur);
-
       chargerChauffeurs();
+
       document.getElementById("prenom").value = "";
       document.getElementById("nom").value = "";
       document.getElementById("email").value = "";
@@ -120,7 +120,7 @@
         .then(function(response) {
           alert(`✅ Email envoyé à ${chauffeur.email}`);
         }, function(error) {
-          alert("❌ Échec de l’envoi : " + JSON.stringify(error));
+          alert("❌ Erreur : " + JSON.stringify(error));
         });
     }
 
