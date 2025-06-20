@@ -7,166 +7,123 @@
 </head>
 <body>
 
-  <h1>Espace Chauffeur</h1>
+  <h1>Espace Chauffeur (démo sans mot de passe)</h1>
 
   <div id="zone-login">
     <input type="text" id="identifiant" placeholder="Identifiant (ex: jean.d.transvern)">
-    <input type="password" id="motdepasse" placeholder="Mot de passe">
-    <button onclick="connexion()">Connexion</button>
-    <button onclick="resetPassword()">Mot de passe oublié</button>
+    <button onclick="connexion()">Entrer</button>
   </div>
 
   <div id="zone-frais" class="hidden">
     <h2 id="nomChauffeur"></h2>
-    <p>Semaine <span id="numeroSemaine"></span> – <span id="dateSemaine"></span></p>
+
+    <label for="dateSelect">Choisir un jour :</label>
+    <select id="dateSelect" onchange="changerJour()"></select>
 
     <table>
       <thead>
         <tr>
-          <th>Jour</th>
           <th>Petit-déj</th>
           <th>Déjeuner</th>
           <th>Dîner</th>
           <th>Nuitée</th>
         </tr>
       </thead>
-      <tbody id="table-frais">
-        <!-- Rempli dynamiquement -->
+      <tbody>
+        <tr>
+          <td><select id="Petit-déj"><option value=""></option><option value="X">X</option><option value="i">i</option></select></td>
+          <td><select id="Déjeuner"><option value=""></option><option value="X">X</option><option value="i">i</option></select></td>
+          <td><select id="Dîner"><option value=""></option><option value="X">X</option><option value="i">i</option></select></td>
+          <td><select id="Nuitée"><option value=""></option><option value="X">X</option><option value="i">i</option></select></td>
+        </tr>
       </tbody>
     </table>
 
-    <button onclick="enregistrer()">Enregistrer ma fiche</button>
-    <button onclick="changerMotDePasse()">Changer mon mot de passe</button>
+    <button onclick="enregistrer()">Enregistrer</button>
   </div>
 
   <script>
-    const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
     const types = ['Petit-déj', 'Déjeuner', 'Dîner', 'Nuitée'];
+    let identifiant = "";
+    let dateDuJour = "";
 
-    function getWeekNumber(d = new Date()) {
-      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-      const dayNum = d.getUTCDay() || 7;
-      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    }
-
-    function genererTableauFrais() {
-      const tbody = document.getElementById('table-frais');
-      tbody.innerHTML = '';
-      jours.forEach(jour => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${jour}</td>` + types.map(type => `
-          <td>
-            <select id="${jour}-${type}">
-              <option value="">-</option>
-              <option value="X">X (France)</option>
-              <option value="i">i (International)</option>
-            </select>
-          </td>`).join('');
-        tbody.appendChild(tr);
-      });
+    function formatDate(d) {
+      const jour = String(d.getDate()).padStart(2, '0');
+      const mois = String(d.getMonth() + 1).padStart(2, '0');
+      const an = d.getFullYear();
+      return `${jour}-${mois}-${an}`;
     }
 
     function connexion() {
-      const id = document.getElementById('identifiant').value.trim().toLowerCase();
-      const mdp = document.getElementById('motdepasse').value;
-      const compte = JSON.parse(localStorage.getItem(`mdp-${id}`));
-
-      if (!compte) {
-        const newMdp = prompt("Nouveau chauffeur. Créez votre mot de passe :");
-        if (newMdp && newMdp.length >= 4) {
-          localStorage.setItem(`mdp-${id}`, JSON.stringify({ motdepasse: newMdp }));
-          alert("Mot de passe enregistré. Connectez-vous à nouveau.");
-        } else {
-          alert("Mot de passe trop court.");
-        }
+      identifiant = document.getElementById('identifiant').value.trim().toLowerCase();
+      if (!identifiant) {
+        alert("Merci de renseigner un identifiant.");
         return;
       }
-
-      if (compte.motdepasse === mdp) {
-        sessionStorage.setItem('chauffeurActif', id);
-        afficherInterface(id);
-      } else {
-        alert("Mot de passe incorrect.");
-      }
-    }
-
-    function resetPassword() {
-      const id = document.getElementById('identifiant').value.trim().toLowerCase();
-      if (confirm("Réinitialiser le mot de passe ?")) {
-        localStorage.removeItem(`mdp-${id}`);
-        alert("Mot de passe supprimé. Rechargez la page pour créer un nouveau mot de passe.");
-      }
-    }
-
-    function changerMotDePasse() {
-      const id = sessionStorage.getItem('chauffeurActif');
-      const nouveau = prompt("Nouveau mot de passe :");
-      if (nouveau && nouveau.length >= 4) {
-        localStorage.setItem(`mdp-${id}`, JSON.stringify({ motdepasse: nouveau }));
-        alert("Mot de passe modifié !");
-      } else {
-        alert("Mot de passe trop court.");
-      }
-    }
-
-    function afficherInterface(id) {
+      sessionStorage.setItem('chauffeurActif', identifiant);
       document.getElementById('zone-login').classList.add('hidden');
       document.getElementById('zone-frais').classList.remove('hidden');
-      document.getElementById('nomChauffeur').textContent = `Chauffeur : ${id}`;
+      document.getElementById('nomChauffeur').textContent = `Chauffeur : ${identifiant}`;
+      chargerDates();
+    }
 
-      const semaine = getWeekNumber();
-      const dateDebut = new Date();
-      dateDebut.setDate(dateDebut.getDate() - ((dateDebut.getDay() + 6) % 7));
-      const lundi = dateDebut.toLocaleDateString('fr-FR');
+    function chargerDates() {
+      const select = document.getElementById('dateSelect');
+      select.innerHTML = '';
+      const maintenant = new Date();
+      const an = maintenant.getFullYear();
+      const mois = maintenant.getMonth();
+      const aujourdHui = formatDate(maintenant);
+      dateDuJour = aujourdHui;
 
-      document.getElementById('numeroSemaine').textContent = semaine;
-      document.getElementById('dateSemaine').textContent = lundi;
+      const premier = new Date(an, mois, 1);
+      const dernierJour = new Date(an, mois + 1, 0).getDate();
 
-      genererTableauFrais();
-
-      const key = `frais-${id}-${semaine}`;
-      const existant = JSON.parse(localStorage.getItem(key));
-      if (existant) {
-        jours.forEach(jour => {
-          types.forEach(type => {
-            const val = existant.frais[jour][type];
-            if (val) document.getElementById(`${jour}-${type}`).value = val;
-          });
-        });
+      for (let i = 1; i <= dernierJour; i++) {
+        const d = new Date(an, mois, i);
+        const f = formatDate(d);
+        const opt = document.createElement('option');
+        opt.value = f;
+        opt.textContent = f;
+        if (f === aujourdHui) opt.selected = true;
+        select.appendChild(opt);
       }
+
+      afficherFrais(aujourdHui);
+    }
+
+    function changerJour() {
+      const dateChoisie = document.getElementById('dateSelect').value;
+      afficherFrais(dateChoisie);
+    }
+
+    function afficherFrais(date) {
+      dateDuJour = date;
+      const key = `frais-${identifiant}-${date}`;
+      const data = JSON.parse(localStorage.getItem(key));
+      types.forEach(type => {
+        document.getElementById(type).value = data ? data[type] : "";
+      });
     }
 
     function enregistrer() {
-      const id = sessionStorage.getItem('chauffeurActif');
-      const semaine = getWeekNumber();
-      const date = new Date();
-      const debut = new Date();
-      debut.setDate(date.getDate() - ((date.getDay() + 6) % 7));
-      const lundi = debut.toLocaleDateString('fr-FR');
-
-      const data = {
-        chauffeur: id,
-        semaine: semaine,
-        date: lundi,
-        frais: {}
-      };
-
-      jours.forEach(jour => {
-        data.frais[jour] = {};
-        types.forEach(type => {
-          const val = document.getElementById(`${jour}-${type}`).value;
-          data.frais[jour][type] = val;
-        });
+      const key = `frais-${identifiant}-${dateDuJour}`;
+      const data = {};
+      types.forEach(type => {
+        data[type] = document.getElementById(type).value;
       });
-
-      localStorage.setItem(`frais-${id}-${semaine}`, JSON.stringify(data));
+      localStorage.setItem(key, JSON.stringify(data));
       alert("Fiche enregistrée !");
     }
 
     const actif = sessionStorage.getItem('chauffeurActif');
-    if (actif) afficherInterface(actif);
+    if (actif) {
+      identifiant = actif;
+      document.getElementById('zone-login').classList.add('hidden');
+      document.getElementById('zone-frais').classList.remove('hidden');
+      document.getElementById('nomChauffeur').textContent = `Chauffeur : ${identifiant}`;
+      chargerDates();
+    }
   </script>
 
 </body>
