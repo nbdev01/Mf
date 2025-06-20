@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <title>Espace Entreprise</title>
 
-  <!-- ✅ SDK EmailJS version 3, avec module -->
-  <script type="module">
-    import emailjs from 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-    emailjs.init("pWkZyANEs1HISx4PQ");
-    window.emailjs = emailjs; // rendre accessible au reste du code
+  <!-- ✅ SDK EmailJS classique, compatible GitHub Pages -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+      emailjs.init("pWkZyANEs1HISx4PQ");
+    });
   </script>
 
   <style>
@@ -115,7 +116,7 @@
         identifiant: chauffeur.identifiant
       };
 
-      window.emailjs.send("service_uyvcs0c", "template_lqjfqh4", params)
+      emailjs.send("service_uyvcs0c", "template_lqjfqh4", params)
         .then(function(response) {
           alert(`✅ Email envoyé à ${chauffeur.email}`);
         }, function(error) {
