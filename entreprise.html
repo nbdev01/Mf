@@ -44,7 +44,13 @@
       <h3>Liste des chauffeurs</h3>
       <table>
         <thead>
-          <tr><th>Nom</th><th>Email</th><th>Identifiant</th><th>Copier</th></tr>
+          <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Identifiant</th>
+            <th>Copier</th>
+            <th>Supprimer</th>
+          </tr>
         </thead>
         <tbody id="listeChauffeurs"></tbody>
       </table>
@@ -121,16 +127,26 @@
       table.innerHTML = "";
 
       const chauffeurs = JSON.parse(localStorage.getItem("chauffeurs-" + entreprise)) || [];
-      chauffeurs.forEach(c => {
+      chauffeurs.forEach((c, index) => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${c.prenom} ${c.nom}</td>
           <td>${c.email}</td>
           <td>${c.identifiant}</td>
           <td><button onclick="navigator.clipboard.writeText('${c.identifiant}')">📋</button></td>
+          <td><button onclick="supprimerChauffeur(${index})">🗑️</button></td>
         `;
         table.appendChild(tr);
       });
+    }
+
+    function supprimerChauffeur(index) {
+      if (!confirm("Supprimer ce chauffeur ?")) return;
+
+      let chauffeurs = JSON.parse(localStorage.getItem("chauffeurs-" + entreprise)) || [];
+      chauffeurs.splice(index, 1);
+      localStorage.setItem("chauffeurs-" + entreprise, JSON.stringify(chauffeurs));
+      chargerChauffeurs();
     }
 
     window.onload = () => {
