@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>Espace Entreprise</title>
-  <link rel="stylesheet" href="style.css">
+  <script type="text/javascript" src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script type="text/javascript">
+    (function(){
+      emailjs.init("pWkZyANEs1HISx4PQ");
+    })();
+  </script>
   <style>
     body { font-family: Arial; padding: 20px; background: #f9f9f9; }
     .hidden { display: none; }
@@ -24,7 +29,6 @@
   </div>
 
   <div id="zone-principale" class="hidden">
-
     <h1>Espace Entreprise – <span id="afficheNomEntreprise"></span></h1>
     <p>📍 Adresse : <span id="afficheAdresseEntreprise"></span></p>
 
@@ -45,7 +49,6 @@
         <tbody id="listeChauffeurs"></tbody>
       </table>
     </div>
-
   </div>
 
   <script>
@@ -90,10 +93,27 @@
       chauffeurs.push(chauffeur);
       localStorage.setItem("chauffeurs-" + entreprise, JSON.stringify(chauffeurs));
 
+      envoyerEmail(chauffeur);
+
       chargerChauffeurs();
       document.getElementById("prenom").value = "";
       document.getElementById("nom").value = "";
       document.getElementById("email").value = "";
+    }
+
+    function envoyerEmail(chauffeur) {
+      const params = {
+        prenom: chauffeur.prenom.charAt(0).toUpperCase() + chauffeur.prenom.slice(1),
+        entreprise: entreprise.toUpperCase(),
+        identifiant: chauffeur.identifiant
+      };
+
+      emailjs.send("service_uyvcs0c", "template_lqjfqh4", params)
+        .then(function(response) {
+          alert(`✅ Email envoyé à ${chauffeur.email}`);
+        }, function(error) {
+          alert("❌ Échec de l’envoi : " + JSON.stringify(error));
+        });
     }
 
     function chargerChauffeurs() {
